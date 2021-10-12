@@ -89,12 +89,11 @@ jobs:
           AWS_ECR_REPOSITORY: my-repo
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          
+          # docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY
         run: |
           docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY .
           echo "Pushing image to ECR...."
           run: npx semantic-release
-          docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY
           echo "::set-output name=image::$AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY"
 
 
