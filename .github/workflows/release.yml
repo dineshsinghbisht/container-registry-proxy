@@ -59,23 +59,62 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Build container image
-        run: docker build -t addono/container-registry-proxy .
+  if: github.ref == 'refs/heads/main'
 
-      - name: Release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_API_KEY }}
-        run: npx semantic-release
-        if: github.ref == 'refs/heads/main' # Only release on master
+    needs:
+      - build-test-release
 
-      - name: Release (dry-run)
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+        with:
+          # Also checkout the version increment commit, if created during release.
+          ref: ${{ needs.build-test-release.outputs.gitref }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build and push the image to Amazon ECR Repo
+        id: build-image
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_API_KEY }}
-        run: npx semantic-release --dry-run
-        if: github.ref != 'refs/heads/main' # Dry run on all other branches
+          AWS_ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          AWS_ECR_REPOSITORY: ${{ secrets.AWS_ECR_REPO_NAME }}
+          # GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+        run: |
+          docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY .
+          echo "Pushing image to ECR...."
+          # run: npx semantic-release
+          docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY
+          echo "::set-output name=image::$AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY"
+
+
+      # - name: Build container image
+      #   run: docker build -t addono/container-registry-proxy .
+
+      # - name: Release
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      #     DOCKER_PASSWORD: ${{ secrets.DOCKER_API_KEY }}
+      #   run: npx semantic-release
+      #   if: github.ref == 'refs/heads/main' # Only release on master
+
+      # - name: Release (dry-run)
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      #     DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      #     DOCKER_PASSWORD: ${{ secrets.DOCKER_API_KEY }}
+      #   run: npx semantic-release --dry-run
+      #   if: github.ref != 'refs/heads/main' # Dry run on all other branches
