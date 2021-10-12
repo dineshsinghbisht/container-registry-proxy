@@ -38,9 +38,9 @@ jobs:
       - name: Run tests
         run: yarn test --coverage
 
-      - name: Collect coverage
-        run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
-        continue-on-error: true # Pipeline still passes when CodeCov is down
+      # - name: Collect coverage
+      #   run: bash <(curl -s https://codecov.io/bash) -t ${{ secrets.CODECOV_TOKEN }}
+      #   continue-on-error: true # Pipeline still passes when CodeCov is down
 
   release:
     name: Release
