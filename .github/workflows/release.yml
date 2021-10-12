@@ -88,7 +88,7 @@ jobs:
           AWS_ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           AWS_ECR_REPOSITORY: my-repo
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # NPM_TOKEN: ${{ secrets.NPM_TOKEN }} 
           # docker push $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY
         run: |
           docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY .
