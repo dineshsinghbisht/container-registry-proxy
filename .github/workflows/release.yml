@@ -93,7 +93,7 @@ jobs:
         run: |
           docker build -t $AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY .
           echo "Pushing image to ECR...."
-          run: npx semantic-release
+          npx semantic-release
           echo "::set-output name=image::$AWS_ECR_REGISTRY/$AWS_ECR_REPOSITORY"
 
 
