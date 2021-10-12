@@ -90,9 +90,17 @@
       "@semantic-release/git",
       "@semantic-release/github",
       [
-        "semantic-release-docker",
+        "@eclass/semantic-release-docker",
         {
-          "name": "addono/container-registry-proxy"
+          "baseImageName": "myapp",
+          "registries": [
+           
+            {
+              "url": "054976950998.dkr.ecr.us-east-1.amazonaws.com",
+              "imageName": "054976950998.dkr.ecr.us-east-1.amazonaws.com/my-repo"
+                       }
+          ],
+          "additionalTags": ["next", "beta"]
         }
       ]
     ]
